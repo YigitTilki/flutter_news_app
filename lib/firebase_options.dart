@@ -78,5 +78,3 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.yigittilki.flutternewsapp.flutterNewsApp.RunnerTests',
   );
 }
-
-//
