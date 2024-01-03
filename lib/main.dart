@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_news_app/feature/splash/splash_view.dart';
+import 'package:flutter_news_app/feature/auth/auth_view.dart';
 import 'package:flutter_news_app/product/initialize/app_start_init.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Flutter News App',
-      home: SplashView(),
+      home: AuthView(),
     );
   }
 }

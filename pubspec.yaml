@@ -40,6 +40,10 @@ dependencies:
   equatable: ^2.0.5
   kartal: ^3.5.0
   animated_text_kit: ^4.2.2
+  firebase_auth: ^4.15.3
+  firebase_ui_auth: ^1.11.0
+  firebase_ui_oauth_google: ^1.2.15
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
