@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_news_app/feature/home/sub/home_view_list.dart';
 import 'package:flutter_news_app/product/constants/color_constants.dart';
+import 'package:flutter_news_app/product/models/news_model.dart';
 import 'package:flutter_news_app/product/widgets/text/subtitle_text.dart';
 import 'package:flutter_news_app/product/widgets/text/title_text.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
 
 class HomeView extends StatelessWidget {
@@ -21,6 +24,7 @@ class HomeView extends StatelessWidget {
               _BrowseHorizontalListView(),
               _RecommendedHeader(),
               _RecommendedListView(),
+              HomeViewList(),
             ],
           ),
         ),
@@ -100,11 +104,13 @@ class _PassiveChip extends StatelessWidget {
   }
 }
 
-class _BrowseHorizontalListView extends StatelessWidget {
-  const _BrowseHorizontalListView();
+class _BrowseHorizontalListView extends ConsumerWidget {
+  const _BrowseHorizontalListView({this.newsItem});
+  final News? newsItem;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (newsItem == null) return const SizedBox.shrink();
     return SizedBox(
       height: context.sized.dynamicHeight(.2),
       child: ListView.builder(
