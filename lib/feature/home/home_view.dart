@@ -1,30 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_news_app/feature/home/sub/home_view_list.dart';
+import 'package:flutter_news_app/feature/home/home_provider.dart';
+import 'package:flutter_news_app/feature/home/sub/home_news_card.dart';
+import 'package:flutter_news_app/feature/home/sub/home_search_delegate.dart';
 import 'package:flutter_news_app/product/constants/color_constants.dart';
-import 'package:flutter_news_app/product/models/news_model.dart';
+import 'package:flutter_news_app/product/models/tag_model.dart';
 import 'package:flutter_news_app/product/widgets/text/subtitle_text.dart';
 import 'package:flutter_news_app/product/widgets/text/title_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
 
-class HomeView extends StatelessWidget {
+final _homeProvider = StateNotifierProvider<HomeNotifier, HomeState>((ref) {
+  return HomeNotifier();
+});
+
+class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
   @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends ConsumerState<HomeView> {
+  final TextEditingController _controller = TextEditingController();
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.read(_homeProvider.notifier).fetchAndLoad());
+
+    ref.read(_homeProvider.notifier).addListener((state) {
+      if (state.selectedTag != null) {
+        _controller.text = state.selectedTag?.name ?? '';
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Material(
+    return Material(
+      child: SafeArea(
         child: Padding(
           padding: context.padding.normal,
-          child: ListView(
-            children: const [
-              _Header(),
-              _CustomField(),
-              _TagListView(),
-              _BrowseHorizontalListView(),
-              _RecommendedHeader(),
-              _RecommendedListView(),
-              HomeViewList(),
+          child: Stack(
+            children: [
+              ListView(
+                children: [
+                  const _Header(),
+                  _CustomField(_controller),
+                  const _TagListView(),
+                  const _BrowseHorizontalListView(),
+                  const _RecommendedHeader(),
+                  const _RecommendedListView(),
+                ],
+              ),
+              if (ref.watch(_homeProvider).isLoading ?? false)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
             ],
           ),
         ),
@@ -33,12 +70,23 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class _CustomField extends StatelessWidget {
-  const _CustomField();
+class _CustomField extends ConsumerWidget {
+  const _CustomField(this.controller);
+  final TextEditingController controller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return TextField(
+      controller: controller,
+      onTap: () async {
+        final response = await showSearch<Tag?>(
+          context: context,
+          delegate: HomeSearchDelegate(
+            ref.read(_homeProvider.notifier).fullTagList,
+          ),
+        );
+        ref.read(_homeProvider.notifier).updateSelectedTag(response);
+      },
       decoration: InputDecoration(
         hintText: 'Search',
         prefixIcon: const Icon(Icons.search),
@@ -51,21 +99,23 @@ class _CustomField extends StatelessWidget {
   }
 }
 
-class _TagListView extends StatelessWidget {
+class _TagListView extends ConsumerWidget {
   const _TagListView();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final newsItem = ref.watch(_homeProvider).tags ?? [];
     return SizedBox(
       height: context.sized.dynamicHeight(.1),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: 4,
+        itemCount: newsItem.length,
         itemBuilder: (BuildContext context, int index) {
-          if (index.isOdd) {
-            return const _PassiveChip();
+          final tagItem = newsItem[index];
+          if (tagItem.active ?? false) {
+            return _PassiveChip(tagItem);
           }
-          return const _ActiveChip();
+          return _ActiveChip(tagItem);
         },
       ),
     );
@@ -73,14 +123,15 @@ class _TagListView extends StatelessWidget {
 }
 
 class _ActiveChip extends StatelessWidget {
-  const _ActiveChip();
+  const _ActiveChip(this.tag);
+  final Tag tag;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: context.padding.onlyRightLow,
       child: Chip(
-        label: const Text('Label Active'),
+        label: Text(tag.name ?? ''),
         padding: context.padding.low,
         backgroundColor: ColorConstants.purplePrimary,
       ),
@@ -89,14 +140,15 @@ class _ActiveChip extends StatelessWidget {
 }
 
 class _PassiveChip extends StatelessWidget {
-  const _PassiveChip();
+  const _PassiveChip(this.tag);
+  final Tag tag;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: context.padding.onlyRightLow,
       child: Chip(
-        label: const Text('Label Passive'),
+        label: Text(tag.name ?? ''),
         padding: context.padding.low,
         backgroundColor: Colors.blueGrey,
       ),
@@ -105,21 +157,19 @@ class _PassiveChip extends StatelessWidget {
 }
 
 class _BrowseHorizontalListView extends ConsumerWidget {
-  const _BrowseHorizontalListView({this.newsItem});
-  final News? newsItem;
+  const _BrowseHorizontalListView();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (newsItem == null) return const SizedBox.shrink();
+    final newsItem = ref.watch(_homeProvider).news;
     return SizedBox(
-      height: context.sized.dynamicHeight(.2),
+      height: context.sized.dynamicHeight(.3),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: 4,
+        itemCount: newsItem?.length ?? 0,
         itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            padding: context.padding.onlyRightNormal,
-            child: const Placeholder(),
+          return HomeNewsCard(
+            newsItem: newsItem![index],
           );
         },
       ),
@@ -150,19 +200,29 @@ class _RecommendedHeader extends StatelessWidget {
   }
 }
 
-class _RecommendedListView extends StatelessWidget {
+class _RecommendedListView extends ConsumerWidget {
   const _RecommendedListView();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = ref.watch(_homeProvider).recommended ?? [];
     return ListView.builder(
-      itemCount: 5,
+      itemCount: items.length,
       shrinkWrap: true,
       physics: const ClampingScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
+        final item = items[index];
         return Padding(
           padding: context.padding.onlyTopLow,
-          child: const Placeholder(),
+          child: ListTile(
+            contentPadding: context.padding.low,
+            leading: Image.network(
+              item.image ?? '',
+              fit: BoxFit.contain,
+            ),
+            title: Text(item.title ?? ''),
+            subtitle: Text(item.description ?? ''),
+          ),
         );
       },
     );

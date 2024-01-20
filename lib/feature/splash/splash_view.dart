@@ -64,7 +64,7 @@ mixin _SplashViewListenMixin on ConsumerState<SplashView> {
       if (next.isRedirectHome != null) {
         if (next.isRedirectHome!) {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => const HomeView()));
+              .push(MaterialPageRoute(builder: (context) => HomeView()));
         } else {}
       }
     });
