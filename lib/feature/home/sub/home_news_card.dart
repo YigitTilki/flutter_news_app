@@ -17,6 +17,8 @@ class HomeNewsCard extends StatelessWidget {
             newsItem!.backgroundImage ?? '',
             color: Colors.black.withOpacity(0.3),
             colorBlendMode: BlendMode.darken,
+            cacheWidth: 700,
+            cacheHeight: 500,
             errorBuilder: (context, error, stackTrace) => const Placeholder(),
           ),
           Padding(

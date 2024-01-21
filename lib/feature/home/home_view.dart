@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_news_app/feature/home/home_provider.dart';
 import 'package:flutter_news_app/feature/home/sub/home_news_card.dart';
 import 'package:flutter_news_app/feature/home/sub/home_search_delegate.dart';
+import 'package:flutter_news_app/feature/home_create/home_create_view.dart';
 import 'package:flutter_news_app/product/constants/color_constants.dart';
 import 'package:flutter_news_app/product/models/tag_model.dart';
 import 'package:flutter_news_app/product/widgets/text/subtitle_text.dart';
@@ -42,8 +43,14 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: SafeArea(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.route.navigateToPage(const HomeCreateView());
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: SafeArea(
         child: Padding(
           padding: context.padding.normal,
           child: Stack(

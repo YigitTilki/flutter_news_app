@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter News App',
       builder: (context, child) => AppBuilder(child).build(),
-      home: HomeView(),
+      home: const HomeView(),
     );
   }
 }
